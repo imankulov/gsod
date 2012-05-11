@@ -19,8 +19,7 @@ setup(
     license = 'BSD License',
     py_modules=['gsod'],
     install_requires=[
-        'requests',
-        'requests-cache',
+        'httplib2',
     ],
     classifiers=(
         'Development Status :: 4 - Beta',

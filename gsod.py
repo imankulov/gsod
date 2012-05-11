@@ -2,11 +2,8 @@
 import csv
 import gzip
 import datetime
-import requests
-import requests_cache
+import httplib2
 from cStringIO import StringIO
-
-requests_cache.configure()
 
 
 
@@ -17,13 +14,20 @@ class StationLoader(object):
     """
     STATIONS_URL = 'http://www1.ncdc.noaa.gov/pub/data/gsod/ish-history.csv'
 
+    def __init__(self, http_cache=None):
+        self.cache = http_cache or '.cache'
+
     def get_stations(self, url=None):
         """
         Return the list of weather stations. One by one
         """
-        resp = requests.get(url or self.STATIONS_URL)
-        resp.raise_for_status()
-        reader = csv.reader(StringIO(resp.text))
+        h = httplib2.Http(self.cache)
+        # ETag implementation on the server-side is broken
+        h.ignore_etag = True
+        resp, content = h.request(url or self.STATIONS_URL)
+        if resp.status != 200:
+            raise RuntimeError('Stations at {0} not found'.format(url or self.STATIONS_URL))
+        reader = csv.reader(StringIO(content))
         header = reader.next()
         field_names = self.get_field_names(header)
         for fields in reader:
@@ -62,13 +66,20 @@ class WeatherLoader(object):
 
     WEATHER_URL_TMPL = 'http://www1.ncdc.noaa.gov/pub/data/gsod/{year}/{usaf}-{wban}-{year}.op.gz'
 
+    def __init__(self, http_cache=None):
+        self.cache = http_cache or '.cache'
+
     def get_weather(self, usaf, wban, year):
         """
         Get weather lines for every day in a given year for the station defined by its usaf and wban
         """
         url = self.WEATHER_URL_TMPL.format(year=year, usaf=usaf, wban=wban)
-        resp = requests.get(url)
-        gz = gzip.GzipFile(fileobj=StringIO(resp.content))
+        h = httplib2.Http(self.cache)
+        h.ignore_etag = True
+        resp, content = h.request(url)
+        if resp.status != 200:
+            return
+        gz = gzip.GzipFile(fileobj=StringIO(content))
         lines = gz.read().splitlines()[1:]
         for line in lines:
             obj = self.parse_weather_record(line)
