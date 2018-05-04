@@ -12,7 +12,7 @@ class StationLoader(object):
     Class which returns the list of stations by parsing the
     http://www.ncdc.noaa.gov/pub/data/gsod/ish-history.csv
     """
-    STATIONS_URL = 'http://www1.ncdc.noaa.gov/pub/data/gsod/ish-history.csv'
+    STATIONS_URL = 'https://www1.ncdc.noaa.gov/pub/data/noaa/isd-history.csv'
 
     def __init__(self, http_cache=None):
         self.cache = http_cache or '.cache'
