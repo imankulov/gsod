@@ -3,7 +3,7 @@ import csv
 import gzip
 import datetime
 import httplib2
-from cStringIO import StringIO
+from io import StringIO
 
 
 
