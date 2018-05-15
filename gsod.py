@@ -12,7 +12,7 @@ class StationLoader(object):
     Class which returns the list of stations by parsing the
     http://www.ncdc.noaa.gov/pub/data/gsod/ish-history.csv
     """
-    STATIONS_URL = 'http://www1.ncdc.noaa.gov/pub/data/gsod/ish-history.csv'
+    STATIONS_URL = 'https://www1.ncdc.noaa.gov/pub/data/noaa/isd-history.csv'
 
     def __init__(self, http_cache=None):
         self.cache = http_cache or '.cache'
@@ -51,10 +51,10 @@ class StationLoader(object):
         Postprocess dict with station info
         """
         # latitude and longitude
-        obj['lat'] = obj['lat'] and obj['lat'] != '-99999' and int(obj['lat']) / 1000.0 or None
-        obj['lon'] = obj['lon'] and obj['lon'] != '-999999' and int(obj['lon']) / 1000.0 or None
+        obj['lat'] = convert_location(obj['lat'])
+        obj['lon'] = convert_location(obj['lon'])
         # elev
-        obj['elev'] = obj['elev'] and obj['elev'] != '-99999' and int(obj['elev']) * 10 or None
+        obj['elev(m)'] = convert_location(obj['elev(m)'])
         # begin and end datetimes
         obj['begin'] = str_to_datetime(obj['begin'])
         obj['end'] = str_to_datetime(obj['end'])
@@ -148,3 +148,11 @@ class WeatherLoader(object):
 
 def str_to_datetime(val):
     return val and datetime.datetime.strptime(val, '%Y%m%d')
+
+
+def convert_location(val):
+    """Remove plus sign from lat/lon value if present"""
+    if val:
+        if val[0] == '+':
+            return val.lstrip('+')
+        return val
