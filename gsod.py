@@ -27,8 +27,8 @@ class StationLoader(object):
         resp, content = h.request(url or self.STATIONS_URL)
         if resp.status != 200:
             raise RuntimeError('Stations at {0} not found'.format(url or self.STATIONS_URL))
-        reader = csv.reader(StringIO(content))
-        header = reader.next()
+        reader = csv.reader(StringIO(content.decode('utf-8')))
+        header = next(reader)
         field_names = self.get_field_names(header)
         for fields in reader:
             fields = (field.strip() or None for field in fields)
